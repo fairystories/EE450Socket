@@ -10,8 +10,10 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define MYPORT "3490"
+#define MYPORT "25064"
 #define BACKLOG 20
+
+void *get_in_addr(struct sockaddr*);
 
 int main(int argc, char const *argv[])
 {
@@ -25,7 +27,9 @@ int main(int argc, char const *argv[])
 
 	//Others trying to connect
 	struct sockaddr_storage their_addr;
-	socklen_t addr_size;
+	socklen_t their_size;
+	char conn_src[INET_ADDRSTRLEN];
+
 
 
 	//Loads up address struct
@@ -79,6 +83,19 @@ int main(int argc, char const *argv[])
 
 	printf("Server: waiting for connections...\n");
 
+	while(1) {
+		//Start accepting connections from others
+		their_size = sizeof their_addr;
+		new_fd = accept(sockfd, (struct sockaddr*)&their_addr,&their_size);
+
+		if(new_fd==-1) {
+			perror("accept");
+		}
+
+		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),conn_src,sizeof conn_src);
+		printf("server: connection from %s\n", conn_src);
+	}
+
 
 	//Start accepting connections from others
 /*	addr_size = sizeof their_addr;
@@ -96,4 +113,13 @@ int main(int argc, char const *argv[])
 
 
 	return 0;
+}
+
+
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa){
+	if (sa->sa_family == AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	}    
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
