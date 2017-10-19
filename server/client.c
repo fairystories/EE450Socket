@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 
 #define MYPORT "25064"
-#define BACKLOG 20
+#define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void *get_in_addr(struct sockaddr*);
 
@@ -20,7 +20,8 @@ int main(int argc, char const *argv[])
 	//addrinfo is the address struct
 	struct addrinfo hints, *servinfo, *p;
 	//sockfd is the socket file descriptor
-	int sockfd, new_fd, rv;
+	int sockfd, new_fd, rv, numbytes;
+	char buf[MAXDATASIZE];
 
 	//For reusing port
 	int yes = 1;
@@ -28,7 +29,7 @@ int main(int argc, char const *argv[])
 	//Others trying to connect
 	struct sockaddr_storage their_addr;
 	socklen_t their_size;
-	char conn_src[INET_ADDRSTRLEN];
+	char conn_addr[INET_ADDRSTRLEN];
 
 
 
@@ -38,7 +39,7 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if((rv=getaddrinfo(NULL, MYPORT, &hints, &servinfo))!=0) {
+	if((rv=getaddrinfo(argv[1], MYPORT, &hints, &servinfo))!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}
@@ -52,52 +53,36 @@ int main(int argc, char const *argv[])
 			continue; //Continue to the next addrinfo
 		}
 
-		//Allows reusing/rebinding of the socket port
-		if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1) {
-			perror("setsockopt");
-			exit(1);
-		}
-
-		//Bind the socket to a local port (not always necessary)
-		//Kernel (Network OS will bind to a local port if needed)
-		if(bind(sockfd, p->ai_addr, p->ai_addrlen)==-1) {
-			perror("server bind()");
+		//Connect to an IP adress on a port
+		if(connect(sockfd,p->ai_addr,p->ai_addrlen)==-1) {
+			close(sockfd);
+			perror("client: connect");
 			continue;
 		}
-
 
 		break; //if reached, it means successful in creating a socket and binding
 	}
 
-	freeaddrinfo(servinfo);
 
 	if(p==NULL) {	//p==NULL means that for loop ended with no successful creating and/or binding
 		printf("Unsuccessful creating and/or binding\n");
 		return 2;
 	}
 
-	//Connect to an IP adress on a port
-	// if(connect(sockfd,res->ai_addr,res->ai_addrlen)==-1) {
-	// 	printf("Error on connect(): Connecting error\n");
-	// }
+	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),conn_addr,sizeof conn_addr);
+	printf("client: connecting to %s\n", conn_addr);
 
-	//Start listening
-	listen(sockfd,BACKLOG);
+	freeaddrinfo(servinfo);
+	
 
-	printf("Server: waiting for connections...\n");
-
-	while(1) {
-		//Start accepting connections from others
-		their_size = sizeof their_addr;
-		new_fd = accept(sockfd, (struct sockaddr*)&their_addr,&their_size);
-
-		if(new_fd==-1) {
-			perror("accept");
-		}
-
-		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),conn_src,sizeof conn_src);
-		printf("server: connection from %s\n", conn_src);
+	if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+		perror("recv");
+		exit(1);
 	}
+	
+	buf[numbytes] = '\0';
+	printf("client: received '%s'\n",buf);
+	close(sockfd);
 
 
 	//Start accepting connections from others
