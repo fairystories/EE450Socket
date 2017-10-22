@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define AWSPORT "25064"
+#define AWSPORT 25064
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void *get_in_addr(struct sockaddr*);
@@ -34,7 +34,15 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if((rv=getaddrinfo("0.0.0.0", AWSPORT, &hints, &servinfo))!=0) {
+	int htons_AWSPORT = htons(AWSPORT);
+	int length = snprintf(NULL, 0, "%d", htons_AWSPORT);
+
+	char htons_AWSPORT_str[length+1];
+	sprintf(htons_AWSPORT_str, "%d", htons_AWSPORT);
+	htons_AWSPORT_str[length] = '\0';
+
+
+	if((rv=getaddrinfo("0.0.0.0", htons_AWSPORT_str, &hints, &servinfo))!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}

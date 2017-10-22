@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define MYPORT "25064"
+#define MYPORT 25064
 #define BACKLOG 20
 #define MAXRECV 100
 
@@ -41,7 +41,14 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if(getaddrinfo("localhost", MYPORT, &hints, &servinfo)!=0) {
+	int htons_MYPORT = htons(MYPORT);
+	int length = snprintf(NULL, 0, "%d", htons_MYPORT);
+
+	char htons_MYPORT_str[length+1];
+	sprintf(htons_MYPORT_str, "%d", htons_MYPORT);
+	htons_MYPORT_str[length] = '\0';
+
+	if(getaddrinfo("localhost", htons_MYPORT_str, &hints, &servinfo)!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}

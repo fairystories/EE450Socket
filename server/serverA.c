@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define AWSPORT 21064
+#define AWSPORT 24064
 #define BACKLOG 20
 #define MAXRECV 100
 
@@ -32,9 +32,9 @@ int main(int argc, char const *argv[])
 		// continue; //Continue to the next addrinfo
 	}
 
-	memset((char *)&serv_sin,0,sizeof(serv_sin));
+	memset(&serv_sin,0,sizeof(serv_sin));
     serv_sin.sin_family=AF_INET;
-    serv_sin.sin_port=AWSPORT;
+    serv_sin.sin_port=htons(AWSPORT);
 
 	printf("serverA: sockfd is %d\n", sockfd);
 
