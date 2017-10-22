@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
 	//addrinfo is the address struct
 	struct addrinfo hints, *servinfo, *p;
 	//sockfd is the socket file descriptor
-	int sockfd, new_fd, rv;
+	int sockfd, new_fd;
 
 	//For reusing port
 	int yes = 1;
@@ -41,11 +41,12 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if((rv=getaddrinfo(NULL, MYPORT, &hints, &servinfo))!=0) {
+	if(getaddrinfo("localhost", MYPORT, &hints, &servinfo)!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}
 
+	//Bind to first possible result
 	for(p=servinfo;p!=NULL;p=p->ai_next) {
 		//Create a socket
 		sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -79,19 +80,12 @@ int main(int argc, char const *argv[])
 		return 2;
 	}
 
-	printf("server: sockfd is %d\n", sockfd);
-
-	//Connect to an IP adress on a port
-	// if(connect(sockfd,res->ai_addr,res->ai_addrlen)==-1) {
-	// 	printf("Error on connect(): Connecting error\n");
-	// }
+	printf("server: sockfd for TCP (aws, client) is %d\n", sockfd);
 
 	//Start listening
 	listen(sockfd,BACKLOG);
 
 	printf("Server: waiting for connections...\n");
-
-	int n = 0;
 
 	while(1) {
 		//Start accepting connections from others
@@ -111,7 +105,7 @@ int main(int argc, char const *argv[])
 		if((bytes_sent = send(new_fd, servMsg, strlen(servMsg), 0))<0) {
 			perror("send");
 		}
-		printf("server: trying to send '%s' to client %d\n", servMsg, n++);
+		printf("server: trying to send '%s' to client\n", servMsg);
 		printf("sent %d bytes successfully\n", bytes_sent);
 
 		printf("waiting to recieve from Client\n");

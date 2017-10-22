@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define MYPORT "25064"
+#define AWSPORT "25064"
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void *get_in_addr(struct sockaddr*);
@@ -34,11 +34,12 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if((rv=getaddrinfo("0.0.0.0", MYPORT, &hints, &servinfo))!=0) {
+	if((rv=getaddrinfo("0.0.0.0", AWSPORT, &hints, &servinfo))!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}
 
+	//Connect to first possible result
 	for(p=servinfo;p!=NULL;p=p->ai_next) {
 		//Create a socket
 		sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -55,11 +56,11 @@ int main(int argc, char const *argv[])
 			continue;
 		}
 
-		break; //if reached, it means successful in creating a socket and binding
+		break; //if reached, it means successful in creating a socket and connecting
 	}
 
 
-	if(p==NULL) {	//p==NULL means that for loop ended with no successful creating and/or binding
+	if(p==NULL) {	//p==NULL means that for loop ended with no successful creating and/or connecting
 		printf("Unsuccessful creating and/or binding\n");
 		return 2;
 	}
