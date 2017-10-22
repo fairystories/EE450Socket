@@ -12,6 +12,7 @@
 
 #define MYPORT "25064"
 #define BACKLOG 20
+#define MAXRECV 100
 
 void *get_in_addr(struct sockaddr*);
 
@@ -29,6 +30,8 @@ int main(int argc, char const *argv[])
 	struct sockaddr_storage their_addr;
 	socklen_t their_size;
 	char conn_src[INET_ADDRSTRLEN];
+	char buf[MAXRECV];
+	int numbytes;
 
 
 
@@ -76,6 +79,8 @@ int main(int argc, char const *argv[])
 		return 2;
 	}
 
+	printf("server: sockfd is %d\n", sockfd);
+
 	//Connect to an IP adress on a port
 	// if(connect(sockfd,res->ai_addr,res->ai_addrlen)==-1) {
 	// 	printf("Error on connect(): Connecting error\n");
@@ -101,31 +106,42 @@ int main(int argc, char const *argv[])
 		printf("server: connection from %s\n", conn_src);
 
 		char *servMsg = "Server is sending this message to client";
-		int len, bytes_sent;
+		int bytes_sent;
 
-		len = strlen(servMsg);
-		if((bytes_sent = send(new_fd, servMsg, len, 0))<0) {
+		if((bytes_sent = send(new_fd, servMsg, strlen(servMsg), 0))<0) {
 			perror("send");
 		}
 		printf("server: trying to send '%s' to client %d\n", servMsg, n++);
 		printf("sent %d bytes successfully\n", bytes_sent);
+
+		printf("waiting to recieve from Client\n");
+		if ((numbytes=recv(new_fd,buf,MAXRECV-1,0))==-1) {
+			perror("recvFunction");
+			exit(1);
+		}
+		buf[numbytes] = '\0';
+		printf("server: received Function=%s and ",buf);
+		char *ackFunc = "Got function";
+		if((bytes_sent = send(new_fd, ackFunc, strlen(ackFunc), 0))<0) {
+			perror("sendAckFunc");
+		}
+
+		if ((numbytes=recv(new_fd,buf,MAXRECV-1,0))==-1) {
+			perror("recvInput");
+			exit(1);
+		}
+		buf[numbytes] = '\0';
+		printf("Input=%s\n",buf);
+
+		char *ackInput = "Got input";
+		if((bytes_sent = send(new_fd, ackInput, strlen(ackInput), 0))<0) {
+			perror("sendAckInput");
+		}
+
 	}
 
 
-	//Start accepting connections from others
-/*	addr_size = sizeof their_addr;
-	new_fd = accept(sockfd, (struct sockaddr_storage*)&their_addr,&addr_size);
-
-	if(new_fd==-1) {
-		perror("accept");
-	}*/
-
-
-	 
-
-
-
-
+	close(sockfd);
 
 	return 0;
 }
