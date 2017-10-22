@@ -86,6 +86,8 @@ int main(int argc, char const *argv[])
 
 	printf("Server: waiting for connections...\n");
 
+	int n = 0;
+
 	while(1) {
 		//Start accepting connections from others
 		their_size = sizeof their_addr;
@@ -97,6 +99,16 @@ int main(int argc, char const *argv[])
 
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),conn_src,sizeof conn_src);
 		printf("server: connection from %s\n", conn_src);
+
+		char *servMsg = "Server is sending this message to client";
+		int len, bytes_sent;
+
+		len = strlen(servMsg);
+		if((bytes_sent = send(new_fd, servMsg, len, 0))<0) {
+			perror("send");
+		}
+		printf("server: trying to send '%s' to client %d\n", servMsg, n++);
+		printf("sent %d bytes successfully\n", bytes_sent);
 	}
 
 
