@@ -69,15 +69,14 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The Server B received input < %f >\n", inputFromAWS_f);
 
-
 		float inputCube_f = calculateCube(inputFromAWS_f);
 
-		char sqrResult[50];
-		convertFloatToString(inputCube_f, sqrResult);
+		char cubeResult[50];
+		convertFloatToString(inputCube_f, cubeResult);
 
-		printf("The Server B calculated square: < %s >\n", sqrResult);
+		printf("The Server B calculated square: < %s >\n", cubeResult);
 
-		if(sendto(sockfd_serB, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+		if(sendto(sockfd_serB, cubeResult, strlen(cubeResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverB sendto1");
 			break;
 		}
@@ -85,7 +84,7 @@ int main(int argc, char const *argv[])
 		printf("The Server B finished sending the output to AWS\n");
 
 
-		while(1) {}
+		// while(1) {}
 	}
 
 	close(sockfd_serB);

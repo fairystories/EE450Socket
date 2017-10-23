@@ -68,7 +68,6 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The Server A received input < %f >\n", inputFromAWS_f);
 
-
 		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
 
 		char sqrResult[50];
@@ -84,7 +83,7 @@ int main(int argc, char const *argv[])
 		printf("The Server A finished sending the output to AWS\n");
 
 
-		while(1) {}
+		// while(1) {}
 	}
 
 	close(sockfd_serA);

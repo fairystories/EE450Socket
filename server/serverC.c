@@ -69,15 +69,14 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The serverC received input < %f >\n", inputFromAWS_f);
 
-
 		float inputFifth_f = calculateFifthPower(inputFromAWS_f);
 
-		char sqrResult[50];
-		convertFloatToString(inputFifth_f, sqrResult);
+		char fifthResult[50];
+		convertFloatToString(inputFifth_f, fifthResult);
 
-		printf("The serverC calculated square: < %s >\n", sqrResult);
+		printf("The serverC calculated square: < %s >\n", fifthResult);
 
-		if(sendto(sockfd_serC, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+		if(sendto(sockfd_serC, fifthResult, strlen(fifthResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverC sendto1");
 			break;
 		}
@@ -85,7 +84,7 @@ int main(int argc, char const *argv[])
 		printf("The serverC finished sending the output to AWS\n");
 
 
-		while(1) {}
+		// while(1) {}
 	}
 
 	close(sockfd_serC);

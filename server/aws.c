@@ -243,7 +243,7 @@ int main(int argc, char const *argv[])
 
 		//AWS GOT BOTH FUNCTION AND INPUT FROM THE CLIENT----------------------
 
-		//Send input to server A, B, C
+		//Send input to server A
 		char *inputToSerA = input;
 		if(sendto(sockfd_serA, inputToSerA, strlen(inputToSerA), 0, (struct sockaddr*)&serA_sin, sizeof(struct sockaddr))==-1) {
 			perror("aws sendto serA");
@@ -251,6 +251,7 @@ int main(int argc, char const *argv[])
 		}
 		printf("The AWS sent < %s > to Backend-Server A\n", inputToSerA);
 
+		//Send input to server B
 		char *inputToSerB = input;
 		if(sendto(sockfd_serB, inputToSerB, strlen(inputToSerB), 0, (struct sockaddr*)&serB_sin, sizeof(struct sockaddr))==-1) {
 			perror("aws sendto serB");
@@ -258,6 +259,7 @@ int main(int argc, char const *argv[])
 		}
 		printf("The AWS sent < %s > to Backend-Server B\n", inputToSerB);
 
+		//Send input to server C
 		char *inputToSerC = input;
 		if(sendto(sockfd_serC, inputToSerC, strlen(inputToSerC), 0, (struct sockaddr*)&serC_sin, sizeof(struct sockaddr))==-1) {
 			perror("aws sendto serC");
@@ -266,16 +268,72 @@ int main(int argc, char const *argv[])
 		printf("The AWS sent < %s > to Backend-Server C\n", inputToSerC);
 
 
-
-
-		char sqrResultFromA[MAXRECV];
+		//Recieve result from A
+		char resultFromA[MAXRECV];
 		int serA_sin_len = sizeof(struct sockaddr);
-		if((numbytes = recvfrom(sockfd_serA, sqrResultFromA, sizeof(sqrResultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
+		if((numbytes = recvfrom(sockfd_serA, resultFromA, sizeof(resultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
 			perror("serA recvfrom1");
 			break;
 		}
+		resultFromA[numbytes] = '\0';
+		printf("The AWS received < %s > Backend-Server <A> using UDP over port < %d >\n", resultFromA, AWS_UDP_PORT);
 
-		printf("The AWS received < %s > Backend-Server <A> using UDP over port < %d >\n", sqrResultFromA, AWS_UDP_PORT);
+		//Recieve result from B
+		char resultFromB[MAXRECV];
+		int serB_sin_len = sizeof(struct sockaddr);
+		if((numbytes = recvfrom(sockfd_serB, resultFromB, sizeof(resultFromB), 0, (struct sockaddr*)&serB_sin, &serB_sin_len))==-1) {
+			perror("serB recvfrom1");
+			break;
+		}
+		resultFromB[numbytes] = '\0';
+		printf("The AWS received < %s > Backend-Server <B> using UDP over port < %d >\n", resultFromB, AWS_UDP_PORT);
+
+		//Recieve result from C
+		char resultFromC[MAXRECV];
+		int serC_sin_len = sizeof(struct sockaddr);
+		if((numbytes = recvfrom(sockfd_serC, resultFromC, sizeof(resultFromC), 0, (struct sockaddr*)&serC_sin, &serC_sin_len))==-1) {
+			perror("serC recvfrom1");
+			break;
+		}
+		resultFromC[numbytes] = '\0';
+		printf("The AWS received < %s > Backend-Server <C> using UDP over port < %d >\n", resultFromC, AWS_UDP_PORT);
+
+		//Send ResultA to A
+		char *resAToA = resultFromA;
+		if(sendto(sockfd_serA, resAToA, strlen(resAToA), 0, (struct sockaddr*)&serA_sin, sizeof(struct sockaddr))==-1) {
+			perror("aws resA sendto serA");
+			break;
+		}
+		printf("The AWS sent < %s > to Backend-Server A\n", resAToA);
+
+		//Send ResultB to B
+		char *resAToB = resultFromA;
+		if(sendto(sockfd_serB, resAToB, strlen(resAToB), 0, (struct sockaddr*)&serB_sin, sizeof(struct sockaddr))==-1) {
+			perror("aws resA sendto serB");
+			break;
+		}
+		printf("The AWS sent < %s > to Backend-Server B\n", resAToB);
+
+
+		//Recieve sec result from A
+		char secResultFromA[MAXRECV];
+		// int serA_sin_len = sizeof(struct sockaddr);
+		if((numbytes = recvfrom(sockfd_serA, secResultFromA, sizeof(secResultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
+			perror("serA recvfrom1");
+			break;
+		}
+		secResultFromA[numbytes] = '\0';
+		printf("The AWS received < %s > Backend-Server <A> using UDP over port < %d >\n", secResultFromA, AWS_UDP_PORT);
+
+		//Recieve sec result from B
+		char secResultFromB[MAXRECV];
+		// int serB_sin_len = sizeof(struct sockaddr);
+		if((numbytes = recvfrom(sockfd_serB, secResultFromB, sizeof(secResultFromB), 0, (struct sockaddr*)&serB_sin, &serB_sin_len))==-1) {
+			perror("serB recvfrom1");
+			break;
+		}
+		secResultFromB[numbytes] = '\0';
+		printf("The AWS received < %s > Backend-Server <B> using UDP over port < %d >\n", secResultFromB, AWS_UDP_PORT);
 
 	}
 
