@@ -19,6 +19,9 @@
 #define MAXRECV 100
 
 void *get_in_addr(struct sockaddr*);
+float calculateLog(float x1, float x2, float x3, float x4, float x5, float x6);
+float convertStrToFloat(char *in);
+void convertFloatToString(float number, char* result);
 
 int main(int argc, char const *argv[])
 {
@@ -335,6 +338,29 @@ int main(int argc, char const *argv[])
 		secResultFromB[numbytes] = '\0';
 		printf("The AWS received < %s > Backend-Server <B> using UDP over port < %d >\n", secResultFromB, AWS_UDP_PORT);
 
+		
+		printf("Values of powers received by AWS: < %s, %s, %s, %s, %s, %s >\n", input, resultFromA, resultFromB, secResultFromA, resultFromC, secResultFromB);
+
+		float x1 = convertStrToFloat(input);
+		float x2 = convertStrToFloat(resultFromA);
+		float x3 = convertStrToFloat(resultFromB);
+		float x4 = convertStrToFloat(secResultFromA);
+		float x5 = convertStrToFloat(resultFromC);
+		float x6 = convertStrToFloat(secResultFromB);
+
+		char finalResult[50];
+
+		float LogResult = calculateLog(x1,x2,x3,x4,x5,x6);
+
+		printf("AWS calculated LOG on < %s >: < %f >\n", input, LogResult);
+		
+		convertFloatToString(LogResult, finalResult);
+
+		if((bytes_sent = send(new_fd, finalResult, strlen(finalResult), 0))<0) {
+			perror("sendFinalResult");
+		}
+		printf("The AWS sent < %s > to client\n", finalResult);
+
 	}
 
 
@@ -353,4 +379,18 @@ void *get_in_addr(struct sockaddr *sa){
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}    
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+float calculateLog(float x1, float x2, float x3, float x4, float x5, float x6) {
+	return (float)((-1.0)*x1-(x2/2.0)-(x3/3.0)-(x4/4.0)-(x5/5.0)-(x6/6.0));
+}
+
+float convertStrToFloat(char *in) {
+	return strtof(in,NULL);
+}
+
+void convertFloatToString(float number, char* result) {
+	int length = snprintf(NULL, 0, "%f", number);
+	sprintf(result, "%f", number);
+	result[length] = '\0';
 }

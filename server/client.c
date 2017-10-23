@@ -95,7 +95,7 @@ int main(int argc, char const *argv[])
 
 		// printf("after concat get %s\n", bufCat);
 
-		// char *inputMsg = (char*)argv[2];
+		char *input = (char*)argv[2];
 		char subInput[50];
 		subtractFromOne((char*)argv[2], subInput);
 		int bytes_sent;
@@ -126,6 +126,16 @@ int main(int argc, char const *argv[])
 		printf("Got ack: %s\n", buf);
 		printf("The client sent < %s > and %s to AWS\n", subInput, funcMsg);
 		// printf("client: trying to send '%s' to server\n", bufCat);
+
+
+		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+			perror("recv");
+			exit(1);
+		}
+
+		buf[numbytes] = '\0';
+		printf("According to AWS, LOG on < %s >: < %s >\n", input, buf);
+
 	}
 
 

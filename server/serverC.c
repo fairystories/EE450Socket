@@ -83,8 +83,6 @@ int main(int argc, char const *argv[])
 
 		printf("The serverC finished sending the output to AWS\n");
 
-
-		// while(1) {}
 	}
 
 	close(sockfd_serC);
@@ -94,11 +92,8 @@ int main(int argc, char const *argv[])
 
 void convertFloatToString(float number, char* result) {
 	int length = snprintf(NULL, 0, "%f", number);
-	// char result[length+1];
 	sprintf(result, "%f", number);
 	result[length] = '\0';
-
-	// return result;
 }
 
 float calculateFifthPower(float in) {

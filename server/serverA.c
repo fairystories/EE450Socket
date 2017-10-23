@@ -82,8 +82,6 @@ int main(int argc, char const *argv[])
 
 		printf("The Server A finished sending the output to AWS\n");
 
-
-		// while(1) {}
 	}
 
 	close(sockfd_serA);
