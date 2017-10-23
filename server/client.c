@@ -14,6 +14,7 @@
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 void *get_in_addr(struct sockaddr*);
+void subtractFromOne(char* input, char* result);
 
 int main(int argc, char const *argv[])
 {
@@ -94,10 +95,12 @@ int main(int argc, char const *argv[])
 
 		// printf("after concat get %s\n", bufCat);
 
-		char *inputMsg = (char*)argv[2];
+		// char *inputMsg = (char*)argv[2];
+		char subInput[50];
+		subtractFromOne((char*)argv[2], subInput);
 		int bytes_sent;
 
-		if((bytes_sent = send(sockfd, inputMsg, strlen(inputMsg), 0))<0) {
+		if((bytes_sent = send(sockfd, subInput, strlen(subInput), 0))<0) {
 			perror("sendInput");
 		}
 		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
@@ -121,7 +124,7 @@ int main(int argc, char const *argv[])
 
 		buf[numbytes] = '\0';
 		printf("Got ack: %s\n", buf);
-		printf("The client sent < %s > and %s to AWS\n", inputMsg, funcMsg);
+		printf("The client sent < %s > and %s to AWS\n", subInput, funcMsg);
 		// printf("client: trying to send '%s' to server\n", bufCat);
 	}
 
@@ -139,4 +142,14 @@ void *get_in_addr(struct sockaddr *sa){
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}    
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+void subtractFromOne(char* input, char* result) {
+	float in = strtof(input,NULL);
+
+	in = (float)(1.0-in);
+
+	int length = snprintf(NULL, 0, "%f", in);
+	sprintf(result, "%f", in);
+	result[length] = '\0';
 }

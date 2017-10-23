@@ -16,6 +16,7 @@
 #define MAXRECV 100
 
 void convertFloatToString(float number, char* result);
+float calculateCube(float in);
 
 int main(int argc, char const *argv[])
 {
@@ -69,10 +70,10 @@ int main(int argc, char const *argv[])
 		printf("The Server B received input < %f >\n", inputFromAWS_f);
 
 
-		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
+		float inputCube_f = calculateCube(inputFromAWS_f);
 
 		char sqrResult[50];
-		convertFloatToString(inputSqr_f, sqrResult);
+		convertFloatToString(inputCube_f, sqrResult);
 
 		printf("The Server B calculated square: < %s >\n", sqrResult);
 
@@ -99,4 +100,8 @@ void convertFloatToString(float number, char* result) {
 	result[length] = '\0';
 
 	// return result;
+}
+
+float calculateCube(float in) {
+	return in*in*in;
 }

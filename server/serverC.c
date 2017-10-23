@@ -16,6 +16,7 @@
 #define MAXRECV 100
 
 void convertFloatToString(float number, char* result);
+float calculateFifthPower(float in);
 
 int main(int argc, char const *argv[])
 {
@@ -69,10 +70,10 @@ int main(int argc, char const *argv[])
 		printf("The serverC received input < %f >\n", inputFromAWS_f);
 
 
-		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
+		float inputFifth_f = calculateFifthPower(inputFromAWS_f);
 
 		char sqrResult[50];
-		convertFloatToString(inputSqr_f, sqrResult);
+		convertFloatToString(inputFifth_f, sqrResult);
 
 		printf("The serverC calculated square: < %s >\n", sqrResult);
 
@@ -99,4 +100,8 @@ void convertFloatToString(float number, char* result) {
 	result[length] = '\0';
 
 	// return result;
+}
+
+float calculateFifthPower(float in) {
+	return in*in*in*in*in;
 }
