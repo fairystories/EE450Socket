@@ -10,7 +10,8 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define MYPORT 25064
+#define AWS_TCP_PORT 25064
+#define AWS_UDP_PORT 24064
 #define BACKLOG 20
 #define MAXRECV 100
 
@@ -21,18 +22,20 @@ int main(int argc, char const *argv[])
 	//addrinfo is the address struct
 	struct addrinfo hints, *servinfo, *p;
 	//sockfd is the socket file descriptor
-	int sockfd, new_fd;
+	int sockfd_client, new_fd;
 
 	//For reusing port
 	int yes = 1;
 
 	//Others trying to connect
-	struct sockaddr_storage their_addr;
-	socklen_t their_size;
+	struct sockaddr_storage client_addr;
+	socklen_t client_size;
 	char conn_src[INET_ADDRSTRLEN];
-	char buf[MAXRECV];
+	// char buf[MAXRECV];
 	int numbytes;
 
+	struct sockaddr_in aws_sin, serA_sin, serB_sin, serC_sin;
+	int sockfd_serA, sockfd_serB, sockfd_serC;
 
 
 	//Loads up address struct
@@ -41,14 +44,14 @@ int main(int argc, char const *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	int htons_MYPORT = htons(MYPORT);
-	int length = snprintf(NULL, 0, "%d", htons_MYPORT);
+	int htons_AWS_TCP_PORT = htons(AWS_TCP_PORT);
+	int length = snprintf(NULL, 0, "%d", htons_AWS_TCP_PORT);
 
-	char htons_MYPORT_str[length+1];
-	sprintf(htons_MYPORT_str, "%d", htons_MYPORT);
-	htons_MYPORT_str[length] = '\0';
+	char htons_AWS_TCP_PORT_str[length+1];
+	sprintf(htons_AWS_TCP_PORT_str, "%d", htons_AWS_TCP_PORT);
+	htons_AWS_TCP_PORT_str[length] = '\0';
 
-	if(getaddrinfo("localhost", htons_MYPORT_str, &hints, &servinfo)!=0) {
+	if(getaddrinfo("localhost", htons_AWS_TCP_PORT_str, &hints, &servinfo)!=0) {
 		perror("server getaddrinfo()");
 		return 1;
 	}
@@ -56,22 +59,22 @@ int main(int argc, char const *argv[])
 	//Bind to first possible result
 	for(p=servinfo;p!=NULL;p=p->ai_next) {
 		//Create a socket
-		sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		sockfd_client = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 
-		if(sockfd==-1) {
+		if(sockfd_client==-1) {
 			perror("server socket()");
 			continue; //Continue to the next addrinfo
 		}
 
 		//Allows reusing/rebinding of the socket port
-		if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1) {
+		if (setsockopt(sockfd_client,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof yes) == -1) {
 			perror("setsockopt");
 			exit(1);
 		}
 
 		//Bind the socket to a local port (not always necessary)
 		//Kernel (Network OS will bind to a local port if needed)
-		if(bind(sockfd, p->ai_addr, p->ai_addrlen)==-1) {
+		if(bind(sockfd_client, p->ai_addr, p->ai_addrlen)==-1) {
 			perror("server bind()");
 			continue;
 		}
@@ -87,23 +90,58 @@ int main(int argc, char const *argv[])
 		return 2;
 	}
 
-	printf("server: sockfd for TCP (aws, client) is %d\n", sockfd);
+	printf("server: sockfd for TCP (aws, client) is %d\n", sockfd_client);
 
 	//Start listening
-	listen(sockfd,BACKLOG);
+	listen(sockfd_client,BACKLOG);
 
-	printf("Server: waiting for connections...\n");
+	printf("The AWS is up and running\n");
+
+	/*---------------SERVERA SOCKET SETUP!!!----------------*/
+
+	//Create a socket
+	sockfd_serA = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if(sockfd_serA==-1) {
+		perror("aws serA socket()");
+	}
+
+	memset(&aws_sin, 0, sizeof(aws_sin));
+    aws_sin.sin_family=AF_INET;
+    aws_sin.sin_port=htons(AWS_UDP_PORT);
+
+    if(bind(sockfd_serA, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
+    	perror("sockfd_serA bind");
+    }
+
+	printf("aws udp for serA: sockfd is %d\n", sockfd_serA);
+
+	/*--------------------SERVERA SOCKET SETUP DONE-------------------------*/
 
 	while(1) {
-		//Start accepting connections from others
-		their_size = sizeof their_addr;
-		new_fd = accept(sockfd, (struct sockaddr*)&their_addr,&their_size);
+
+
+		//-------------------Wait to recieve from server A-------------------------
+		char serA_conn[MAXRECV];
+		int serA_sin_len = sizeof(serA_sin);
+		if((numbytes = recvfrom(sockfd_serA, serA_conn, MAXRECV-1, 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
+			perror("serA recvfrom");
+			break;
+		}
+		serA_conn[numbytes] = '\0';
+		printf("UDP got '%s' from serverA\n", serA_conn);
+		//--------------------------------------------------------------------------
+
+
+		//Start accepting connections from client----------------------------------------------------
+		client_size = sizeof client_addr;
+		new_fd = accept(sockfd_client, (struct sockaddr*)&client_addr,&client_size);
 
 		if(new_fd==-1) {
 			perror("accept");
 		}
 
-		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr),conn_src,sizeof conn_src);
+		inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr *)&client_addr),conn_src,sizeof conn_src);
 		printf("server: connection from %s\n", conn_src);
 
 		char *servMsg = "Server is sending this message to client";
@@ -115,34 +153,59 @@ int main(int argc, char const *argv[])
 		printf("server: trying to send '%s' to client\n", servMsg);
 		printf("sent %d bytes successfully\n", bytes_sent);
 
-		printf("waiting to recieve from Client\n");
-		if ((numbytes=recv(new_fd,buf,MAXRECV-1,0))==-1) {
+		// printf("waiting to recieve from Client\n");
+		char input[MAXRECV];
+		if ((numbytes=recv(new_fd,input,MAXRECV-1,0))==-1) {
 			perror("recvFunction");
 			exit(1);
 		}
-		buf[numbytes] = '\0';
-		printf("server: received Function=%s and ",buf);
+		input[numbytes] = '\0';
+		printf("The AWS received input < %s > and ",input);
+
 		char *ackFunc = "Got function";
 		if((bytes_sent = send(new_fd, ackFunc, strlen(ackFunc), 0))<0) {
-			perror("sendAckFunc");
+			perror("sendAckInput");
 		}
 
-		if ((numbytes=recv(new_fd,buf,MAXRECV-1,0))==-1) {
+		char func[MAXRECV];
+		if ((numbytes=recv(new_fd,func,MAXRECV-1,0))==-1) {
 			perror("recvInput");
 			exit(1);
 		}
-		buf[numbytes] = '\0';
-		printf("Input=%s\n",buf);
+		func[numbytes] = '\0';
+		printf("function=%s from the client using TCP over port %d\n",func, AWS_TCP_PORT);
 
 		char *ackInput = "Got input";
 		if((bytes_sent = send(new_fd, ackInput, strlen(ackInput), 0))<0) {
-			perror("sendAckInput");
+			perror("sendAckFunction");
 		}
+
+		//AWS GOT BOTH FUNCTION AND INPUT FROM THE CLIENT----------------------
+
+		//Send input to server A, B, C
+		char *inputToSerA = input;
+		if(sendto(sockfd_serA, inputToSerA, strlen(inputToSerA), 0, (struct sockaddr*)&serA_sin, sizeof(struct sockaddr))==-1) {
+			perror("aws sendto serA");
+			break;
+		}
+
+		printf("AWS trying to send '%s' to serverA and sockfd becomes %d\n", inputToSerA, sockfd_serA);
+
+		char sqrResultFromA[MAXRECV];
+		if((numbytes = recvfrom(sockfd_serA, sqrResultFromA, sizeof(sqrResultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
+			perror("serA recvfrom1");
+			break;
+		}
+
+		printf("AWS got result from A: %s\n", sqrResultFromA);
 
 	}
 
 
-	close(sockfd);
+	close(sockfd_client);
+	close(sockfd_serA);
+	close(sockfd_serB);
+	close(sockfd_serC);
 
 	return 0;
 }

@@ -47,16 +47,12 @@ int main(int argc, char const *argv[])
 	printf("serverB: sockfd is %d\n", sockfd);
 
 	while(1) {
-		// char *msgToSend = "serverB: Sending over UDP";
 		int other_sin_len = sizeof(other_sin);
-		printf("---------------1--------------------\n");
 		if((numbytes = recvfrom(sockfd, buf, MAXRECV-1, 0, (struct sockaddr*)&other_sin, &other_sin_len))==-1) {
 			perror("serverB recvfrom");
 			break;
 		}
-
-		printf("-----------------2----------------------\n");
-		// buf[numbytes] = '\0';
+		buf[numbytes] = '\0';
 		printf("UDP got '%s' from serverA\n", buf);
 	}
 

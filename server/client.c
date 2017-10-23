@@ -73,10 +73,10 @@ int main(int argc, char const *argv[])
 		return 2;
 	}
 
-	printf("client: the sockfd is %d\n", sockfd);
+	printf("The client is up and running.\n");
 
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),conn_addr,sizeof conn_addr);
-	printf("client: connecting to %s\n", conn_addr);
+	// printf("client: connecting to %s\n", conn_addr);
 
 	freeaddrinfo(servinfo);
 	
@@ -87,38 +87,42 @@ int main(int argc, char const *argv[])
 		}
 		
 		buf[numbytes] = '\0';
-		printf("client: received '%s'\n",buf);
+		// printf("client: received '%s'\n",buf);
 
 		char bufCat[strlen(argv[1])+strlen(argv[2])+2];
 		snprintf(bufCat, sizeof(bufCat), "%s %s", argv[1], argv[2]);
 
-		printf("after concat get %s\n", bufCat);
+		// printf("after concat get %s\n", bufCat);
 
-		char *servMsg = (char*)argv[1];
+		char *inputMsg = (char*)argv[2];
 		int bytes_sent;
 
-		if((bytes_sent = send(sockfd, servMsg, strlen(servMsg), 0))<0) {
-			perror("sendFunction");
-		}
-		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-			perror("recv");
-			exit(1);
-		}
-		buf[numbytes] = '\0';
-		printf("Got ack: %s\n", buf);
-
-		servMsg = (char*)argv[2];
-		if((bytes_sent = send(sockfd, servMsg, strlen(servMsg), 0))<0) {
+		if((bytes_sent = send(sockfd, inputMsg, strlen(inputMsg), 0))<0) {
 			perror("sendInput");
 		}
 		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
 			perror("recv");
 			exit(1);
 		}
+
+		
 		buf[numbytes] = '\0';
 		printf("Got ack: %s\n", buf);
-		printf("client: trying to send '%s' to server\n", bufCat);
-		// printf("sent %d bytes successfully\n", bytes_sent);
+
+		char *funcMsg = (char*)argv[1];
+		
+		if((bytes_sent = send(sockfd, funcMsg, strlen(funcMsg), 0))<0) {
+			perror("sendFunction");
+		}
+		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+			perror("recv");
+			exit(1);
+		}
+
+		buf[numbytes] = '\0';
+		printf("Got ack: %s\n", buf);
+		printf("The client sent < %s > and %s to AWS\n", inputMsg, funcMsg);
+		// printf("client: trying to send '%s' to server\n", bufCat);
 	}
 
 

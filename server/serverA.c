@@ -10,54 +10,95 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
+#define SERA_PORT 21064
 #define AWSPORT 24064
 #define BACKLOG 20
 #define MAXRECV 100
 
-void *get_in_addr(struct sockaddr*);
+void convertFloatToString(float number, char* result);
 
 int main(int argc, char const *argv[])
 {
 	//addrinfo is the address struct
-	struct sockaddr_in serv_sin;
-	int sockfd;
+	struct sockaddr_in serv_sin, serA_sin;
+	int sockfd_serA;
 	char buf[MAXRECV];
 	int numbytes;
 
 	//Create a socket
-	sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	sockfd_serA = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if(sockfd==-1) {
-		perror("serverA: socket()");
-		// continue; //Continue to the next addrinfo
+	if(sockfd_serA==-1) {
+		perror("serverA: socket()1");
 	}
 
 	memset(&serv_sin,0,sizeof(serv_sin));
     serv_sin.sin_family=AF_INET;
     serv_sin.sin_port=htons(AWSPORT);
 
-	printf("serverA: sockfd is %d\n", sockfd);
+	memset(&serA_sin,0,sizeof(serA_sin));
+    serA_sin.sin_family=AF_INET;
+    serA_sin.sin_port=htons(SERA_PORT);
+
+    if(bind(sockfd_serA, (struct sockaddr*)&serA_sin, sizeof(serA_sin))==-1) {
+    	perror("sockfd_serA bind");
+    }
+
+    printf("The Server A is up and running using UDP on port %d.\n", SERA_PORT);
 
 	while(1) {
 		char *msgToSend = "serverA: Sending over UDP";
-		if(sendto(sockfd, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+		if(sendto(sockfd_serA, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverA sendto");
 			break;
 		}
-
+		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
 		printf("UDP trying to send '%s' to serverB\n", msgToSend);
 
-		char buf[MAXRECV];
-		int serv_sin = sizeof(struct sockaddr);
-		if((numbytes = recvfrom(sockfd, buf, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin))==-1) {
+		char inputFromAWS_str[MAXRECV];
+		int serv_sin_len = sizeof(struct sockaddr);
+		if((numbytes = recvfrom(sockfd_serA, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
 			perror("serverA recvfrom");
 			break;
 		}
-		buf[numbytes] = '\0';
-		printf("UDP got '%s' from serverB\n", buf);
+		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
+		inputFromAWS_str[numbytes] = '\0';
+		// printf("UDP got '%s' from serverB\n", inputFromAWS_str);
+
+		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
+		printf("UDP got '%f' from serverB\n", inputFromAWS_f);
+
+		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
+
+		char sqrResult[50];
+		convertFloatToString(inputSqr_f, sqrResult);
+
+		printf("Result is = %s and sockfd_serA = %d\n", sqrResult, sockfd_serA);
+
+		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
+
+		if(sendto(sockfd_serA, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+			perror("serverA sendto1");
+			break;
+		}
+		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
+
+		printf("serverA sending %f back to AWS\n", inputSqr_f);
+
+
+		while(1) {}
 	}
 
-	close(sockfd);
+	close(sockfd_serA);
 
 	return 0;
+}
+
+void convertFloatToString(float number, char* result) {
+	int length = snprintf(NULL, 0, "%f", number);
+	// char result[length+1];
+	sprintf(result, "%f", number);
+	result[length] = '\0';
+
+	// return result;
 }
