@@ -134,7 +134,7 @@ int main(int argc, char const *argv[])
 		}
 
 		buf[numbytes] = '\0';
-		printf("According to AWS, LOG on < %s >: < %s >\n", input, buf);
+		printf("According to AWS, %s on < %s >: < %s >\n", funcMsg, input, buf);
 
 	}
 

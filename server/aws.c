@@ -20,6 +20,7 @@
 
 void *get_in_addr(struct sockaddr*);
 float calculateLog(float x1, float x2, float x3, float x4, float x5, float x6);
+float calculateDiv(float x1, float x2, float x3, float x4, float x5, float x6);
 float convertStrToFloat(char *in);
 void convertFloatToString(float number, char* result);
 
@@ -350,11 +351,25 @@ int main(int argc, char const *argv[])
 
 		char finalResult[50];
 
-		float LogResult = calculateLog(x1,x2,x3,x4,x5,x6);
+		int isLog = 1;
+		char* logFunc = "LOG";
+		if(strcmp(func,logFunc)!=0) {
+			isLog = 0;
+		}
 
-		printf("AWS calculated LOG on < %s >: < %f >\n", input, LogResult);
-		
-		convertFloatToString(LogResult, finalResult);
+		printf("isLog = %d\n", isLog);
+
+		if(isLog) {
+			float LogResult = calculateLog(x1,x2,x3,x4,x5,x6);
+			printf("AWS calculated LOG on < %s >: < %f >\n", input, LogResult);
+			convertFloatToString(LogResult, finalResult);
+		}
+		else {
+			float DivResult = calculateDiv(x1,x2,x3,x4,x5,x6);
+			printf("AWS calculated DIV on < %s >: < %f >\n", input, DivResult);
+			convertFloatToString(DivResult, finalResult);
+		}
+
 
 		if((bytes_sent = send(new_fd, finalResult, strlen(finalResult), 0))<0) {
 			perror("sendFinalResult");
@@ -383,6 +398,10 @@ void *get_in_addr(struct sockaddr *sa){
 
 float calculateLog(float x1, float x2, float x3, float x4, float x5, float x6) {
 	return (float)((-1.0)*x1-(x2/2.0)-(x3/3.0)-(x4/4.0)-(x5/5.0)-(x6/6.0));
+}
+
+float calculateDiv(float x1, float x2, float x3, float x4, float x5, float x6) {
+	return (float)(1.0+x1+x2+x3+x4+x5+x6);
 }
 
 float convertStrToFloat(char *in) {
