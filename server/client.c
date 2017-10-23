@@ -100,7 +100,7 @@ int main(int argc, char const *argv[])
 		subtractFromOne((char*)argv[2], subInput);
 		int bytes_sent;
 
-		if((bytes_sent = send(sockfd, subInput, strlen(subInput), 0))<0) {
+		if((bytes_sent = send(sockfd, input, strlen(input), 0))<0) {
 			perror("sendInput");
 		}
 		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
