@@ -12,6 +12,7 @@
 
 #define AWS_TCP_PORT 25064
 #define AWS_UDP_PORT 24064
+#define ServerA_PORT 21064
 #define BACKLOG 20
 #define MAXRECV 100
 
@@ -106,6 +107,10 @@ int main(int argc, char const *argv[])
 		perror("aws serA socket()");
 	}
 
+	memset(&serA_sin,0,sizeof(serA_sin));
+    serA_sin.sin_family=AF_INET;
+    serA_sin.sin_port=htons(ServerA_PORT);
+
 	memset(&aws_sin, 0, sizeof(aws_sin));
     aws_sin.sin_family=AF_INET;
     aws_sin.sin_port=htons(AWS_UDP_PORT);
@@ -122,14 +127,24 @@ int main(int argc, char const *argv[])
 
 
 		//-------------------Wait to recieve from server A-------------------------
-		char serA_conn[MAXRECV];
-		int serA_sin_len = sizeof(serA_sin);
-		if((numbytes = recvfrom(sockfd_serA, serA_conn, MAXRECV-1, 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
-			perror("serA recvfrom");
-			break;
-		}
-		serA_conn[numbytes] = '\0';
-		printf("UDP got '%s' from serverA\n", serA_conn);
+		// char serA_conn[MAXRECV];
+		// int serA_sin_len = sizeof(serA_sin);
+		// if((numbytes = recvfrom(sockfd_serA, serA_conn, MAXRECV-1, 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
+		// 	perror("serA recvfrom");
+		// 	break;
+		// }
+		// serA_conn[numbytes] = '\0';
+		// printf("UDP got '%s' from serverA\n", serA_conn);
+
+
+		//Send input to server A, B, C
+		// char *initMsgToA = "Hi A I am AWS";
+		// if(sendto(sockfd_serA, inputToSerA, strlen(inputToSerA), 0, (struct sockaddr*)&serA_sin, sizeof(struct sockaddr))==-1) {
+		// 	perror("aws sendto serA");
+		// 	break;
+		// }
+
+		// printf("AWS trying to send '%s' to serverA and sockfd = %d\n", initMsgToA, sockfd_serA);
 		//--------------------------------------------------------------------------
 
 
@@ -144,14 +159,14 @@ int main(int argc, char const *argv[])
 		inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr *)&client_addr),conn_src,sizeof conn_src);
 		printf("server: connection from %s\n", conn_src);
 
-		char *servMsg = "Server is sending this message to client";
+		// char *servMsg = "Server is sending this message to client";
 		int bytes_sent;
 
-		if((bytes_sent = send(new_fd, servMsg, strlen(servMsg), 0))<0) {
-			perror("send");
-		}
-		printf("server: trying to send '%s' to client\n", servMsg);
-		printf("sent %d bytes successfully\n", bytes_sent);
+		// if((bytes_sent = send(new_fd, servMsg, strlen(servMsg), 0))<0) {
+		// 	perror("send");
+		// }
+		// printf("server: trying to send '%s' to client\n", servMsg);
+		// printf("sent %d bytes successfully\n", bytes_sent);
 
 		// printf("waiting to recieve from Client\n");
 		char input[MAXRECV];
@@ -189,15 +204,16 @@ int main(int argc, char const *argv[])
 			break;
 		}
 
-		printf("AWS trying to send '%s' to serverA and sockfd becomes %d\n", inputToSerA, sockfd_serA);
+		printf("The AWS sent < %s > to Backend-Server A\n", inputToSerA);
 
 		char sqrResultFromA[MAXRECV];
+		int serA_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serA, sqrResultFromA, sizeof(sqrResultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
 			perror("serA recvfrom1");
 			break;
 		}
 
-		printf("AWS got result from A: %s\n", sqrResultFromA);
+		printf("The AWS received < %s > Backend-Server <A> using UDP over port < %d >\n", sqrResultFromA, AWS_UDP_PORT);
 
 	}
 

@@ -81,12 +81,12 @@ int main(int argc, char const *argv[])
 	freeaddrinfo(servinfo);
 	
 	while (1) {
-		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-			perror("recv");
-			exit(1);
-		}
+		// if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+		// 	perror("recv");
+		// 	exit(1);
+		// }
 		
-		buf[numbytes] = '\0';
+		// buf[numbytes] = '\0';
 		// printf("client: received '%s'\n",buf);
 
 		char bufCat[strlen(argv[1])+strlen(argv[2])+2];

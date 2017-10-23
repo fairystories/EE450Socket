@@ -47,13 +47,15 @@ int main(int argc, char const *argv[])
     printf("The Server A is up and running using UDP on port %d.\n", SERA_PORT);
 
 	while(1) {
-		char *msgToSend = "serverA: Sending over UDP";
-		if(sendto(sockfd_serA, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-			perror("serverA sendto");
-			break;
-		}
-		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
-		printf("UDP trying to send '%s' to serverB\n", msgToSend);
+		// char *msgToSend = "serverA: Sending over UDP";
+		// if(sendto(sockfd_serA, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+		// 	perror("serverA sendto");
+		// 	break;
+		// }
+		
+
+
+	//	printf("UDP trying to send '%s' to serverB\n", msgToSend);
 
 		char inputFromAWS_str[MAXRECV];
 		int serv_sin_len = sizeof(struct sockaddr);
@@ -61,29 +63,25 @@ int main(int argc, char const *argv[])
 			perror("serverA recvfrom");
 			break;
 		}
-		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
 		inputFromAWS_str[numbytes] = '\0';
-		// printf("UDP got '%s' from serverB\n", inputFromAWS_str);
 
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
-		printf("UDP got '%f' from serverB\n", inputFromAWS_f);
+		printf("The Server A received input < %f >\n", inputFromAWS_f);
+
 
 		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
 
 		char sqrResult[50];
 		convertFloatToString(inputSqr_f, sqrResult);
 
-		printf("Result is = %s and sockfd_serA = %d\n", sqrResult, sockfd_serA);
-
-		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
+		printf("The Server A calculated square: < %s >\n", sqrResult);
 
 		if(sendto(sockfd_serA, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverA sendto1");
 			break;
 		}
-		printf("serverA: sockfd_serA is %d\n", sockfd_serA);
 
-		printf("serverA sending %f back to AWS\n", inputSqr_f);
+		printf("The Server A finished sending the output to AWS\n");
 
 
 		while(1) {}
