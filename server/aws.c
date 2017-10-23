@@ -13,6 +13,8 @@
 #define AWS_TCP_PORT 25064
 #define AWS_UDP_PORT 24064
 #define ServerA_PORT 21064
+#define ServerB_PORT 22064
+#define ServerC_PORT 23064
 #define BACKLOG 20
 #define MAXRECV 100
 
@@ -98,6 +100,11 @@ int main(int argc, char const *argv[])
 
 	printf("The AWS is up and running\n");
 
+
+	memset(&aws_sin, 0, sizeof(aws_sin));
+    aws_sin.sin_family=AF_INET;
+    aws_sin.sin_port=htons(AWS_UDP_PORT);
+
 	/*---------------SERVERA SOCKET SETUP!!!----------------*/
 
 	//Create a socket
@@ -111,17 +118,56 @@ int main(int argc, char const *argv[])
     serA_sin.sin_family=AF_INET;
     serA_sin.sin_port=htons(ServerA_PORT);
 
-	memset(&aws_sin, 0, sizeof(aws_sin));
-    aws_sin.sin_family=AF_INET;
-    aws_sin.sin_port=htons(AWS_UDP_PORT);
 
-    if(bind(sockfd_serA, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
-    	perror("sockfd_serA bind");
-    }
+    // if(bind(sockfd_serA, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
+    // 	perror("sockfd_serA bind");
+    // }
 
 	printf("aws udp for serA: sockfd is %d\n", sockfd_serA);
 
 	/*--------------------SERVERA SOCKET SETUP DONE-------------------------*/
+
+	/*---------------SERVERB SOCKET SETUP!!!----------------*/
+
+	//Create a socket
+	sockfd_serB = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if(sockfd_serB==-1) {
+		perror("aws serA socket()");
+	}
+
+	memset(&serB_sin,0,sizeof(serB_sin));
+    serB_sin.sin_family=AF_INET;
+    serB_sin.sin_port=htons(ServerB_PORT);
+
+    // if(bind(sockfd_serB, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
+    // 	perror("sockfd_serB bind");
+    // }
+
+	printf("aws udp for serB: sockfd is %d\n", sockfd_serB);
+
+	/*--------------------SERVERB SOCKET SETUP DONE-------------------------*/
+
+	/*---------------SERVERC SOCKET SETUP!!!----------------*/
+
+	//Create a socket
+	sockfd_serC = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if(sockfd_serC==-1) {
+		perror("aws serC socket()");
+	}
+
+	memset(&serC_sin,0,sizeof(serC_sin));
+    serC_sin.sin_family=AF_INET;
+    serC_sin.sin_port=htons(ServerC_PORT);
+
+    // if(bind(sockfd_serC, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
+    // 	perror("sockfd_serC bind");
+    // }
+
+	printf("aws udp for serC: sockfd is %d\n", sockfd_serC);
+
+	/*--------------------SERVERC SOCKET SETUP DONE-------------------------*/
 
 	while(1) {
 
@@ -203,8 +249,24 @@ int main(int argc, char const *argv[])
 			perror("aws sendto serA");
 			break;
 		}
-
 		printf("The AWS sent < %s > to Backend-Server A\n", inputToSerA);
+
+		char *inputToSerB = input;
+		if(sendto(sockfd_serB, inputToSerB, strlen(inputToSerB), 0, (struct sockaddr*)&serB_sin, sizeof(struct sockaddr))==-1) {
+			perror("aws sendto serB");
+			break;
+		}
+		printf("The AWS sent < %s > to Backend-Server B\n", inputToSerB);
+
+		char *inputToSerC = input;
+		if(sendto(sockfd_serC, inputToSerC, strlen(inputToSerC), 0, (struct sockaddr*)&serC_sin, sizeof(struct sockaddr))==-1) {
+			perror("aws sendto serC");
+			break;
+		}
+		printf("The AWS sent < %s > to Backend-Server C\n", inputToSerC);
+
+
+
 
 		char sqrResultFromA[MAXRECV];
 		int serA_sin_len = sizeof(struct sockaddr);

@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#define SERB_PORT 22064
+#define SERB_PORT 23064
 #define AWSPORT 24064
 #define BACKLOG 20
 #define MAXRECV 100
@@ -20,36 +20,36 @@ void convertFloatToString(float number, char* result);
 int main(int argc, char const *argv[])
 {
 	//addrinfo is the address struct
-	struct sockaddr_in serv_sin, serB_sin;
-	int sockfd_serB;
+	struct sockaddr_in serv_sin, serC_sin;
+	int sockfd_serC;
 	char buf[MAXRECV];
 	int numbytes;
 
 	//Create a socket
-	sockfd_serB = socket(AF_INET, SOCK_DGRAM, 0);
+	sockfd_serC = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if(sockfd_serB==-1) {
-		perror("serverB: socket()1");
+	if(sockfd_serC==-1) {
+		perror("serverC: socket()1");
 	}
 
 	memset(&serv_sin,0,sizeof(serv_sin));
     serv_sin.sin_family=AF_INET;
     serv_sin.sin_port=htons(AWSPORT);
 
-	memset(&serB_sin,0,sizeof(serB_sin));
-    serB_sin.sin_family=AF_INET;
-    serB_sin.sin_port=htons(SERB_PORT);
+	memset(&serC_sin,0,sizeof(serC_sin));
+    serC_sin.sin_family=AF_INET;
+    serC_sin.sin_port=htons(SERB_PORT);
 
-    if(bind(sockfd_serB, (struct sockaddr*)&serB_sin, sizeof(serB_sin))==-1) {
-    	perror("sockfd_serB bind");
+    if(bind(sockfd_serC, (struct sockaddr*)&serC_sin, sizeof(serC_sin))==-1) {
+    	perror("sockfd_serC bind");
     }
 
-    printf("The Server B is up and running using UDP on port %d.\n", SERB_PORT);
+    printf("The serverC is up and running using UDP on port %d.\n", SERB_PORT);
 
 	while(1) {
-		// char *msgToSend = "serverA: Sending over UDP";
-		// if(sendto(sockfd_serB, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-		// 	perror("serverA sendto");
+		// char *msgToSend = "serverC: Sending over UDP";
+		// if(sendto(sockfd_serC, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+		// 	perror("serverC sendto");
 		// 	break;
 		// }
 		
@@ -59,14 +59,14 @@ int main(int argc, char const *argv[])
 
 		char inputFromAWS_str[MAXRECV];
 		int serv_sin_len = sizeof(struct sockaddr);
-		if((numbytes = recvfrom(sockfd_serB, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
-			perror("serverB recvfrom");
+		if((numbytes = recvfrom(sockfd_serC, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
+			perror("serverC recvfrom");
 			break;
 		}
 		inputFromAWS_str[numbytes] = '\0';
 
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
-		printf("The Server B received input < %f >\n", inputFromAWS_f);
+		printf("The serverC received input < %f >\n", inputFromAWS_f);
 
 
 		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
@@ -74,20 +74,20 @@ int main(int argc, char const *argv[])
 		char sqrResult[50];
 		convertFloatToString(inputSqr_f, sqrResult);
 
-		printf("The Server B calculated square: < %s >\n", sqrResult);
+		printf("The serverC calculated square: < %s >\n", sqrResult);
 
-		if(sendto(sockfd_serB, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-			perror("serverB sendto1");
+		if(sendto(sockfd_serC, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
+			perror("serverC sendto1");
 			break;
 		}
 
-		printf("The Server B finished sending the output to AWS\n");
+		printf("The serverC finished sending the output to AWS\n");
 
 
 		while(1) {}
 	}
 
-	close(sockfd_serB);
+	close(sockfd_serC);
 
 	return 0;
 }
