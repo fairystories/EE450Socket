@@ -80,63 +80,52 @@ int main(int argc, char const *argv[])
 	// printf("client: connecting to %s\n", conn_addr);
 
 	freeaddrinfo(servinfo);
-	
-	while (1) {
-		// if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-		// 	perror("recv");
-		// 	exit(1);
-		// }
-		
-		// buf[numbytes] = '\0';
-		// printf("client: received '%s'\n",buf);
 
-		char bufCat[strlen(argv[1])+strlen(argv[2])+2];
-		snprintf(bufCat, sizeof(bufCat), "%s %s", argv[1], argv[2]);
-
-		// printf("after concat get %s\n", bufCat);
-
-		char *input = (char*)argv[2];
-		char subInput[50];
-		subtractFromOne((char*)argv[2], subInput);
-		int bytes_sent;
-
-		if((bytes_sent = send(sockfd, input, strlen(input), 0))<0) {
-			perror("sendInput");
-		}
-		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-			perror("recv");
-			exit(1);
-		}
-
-		
-		buf[numbytes] = '\0';
-		printf("Got ack: %s\n", buf);
-
-		char *funcMsg = (char*)argv[1];
-		
-		if((bytes_sent = send(sockfd, funcMsg, strlen(funcMsg), 0))<0) {
-			perror("sendFunction");
-		}
-		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-			perror("recv");
-			exit(1);
-		}
-
-		buf[numbytes] = '\0';
-		printf("Got ack: %s\n", buf);
-		printf("The client sent < %s > and %s to AWS\n", subInput, funcMsg);
-		// printf("client: trying to send '%s' to server\n", bufCat);
+	char bufCat[strlen(argv[1])+strlen(argv[2])+2];
+	snprintf(bufCat, sizeof(bufCat), "%s %s", argv[1], argv[2]);
 
 
-		if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
-			perror("recv");
-			exit(1);
-		}
+	char *input = (char*)argv[2];
+	char subInput[50];
+	subtractFromOne((char*)argv[2], subInput);
+	int bytes_sent;
 
-		buf[numbytes] = '\0';
-		printf("According to AWS, %s on < %s >: < %s >\n", funcMsg, input, buf);
-
+	if((bytes_sent = send(sockfd, input, strlen(input), 0))<0) {
+		perror("sendInput");
 	}
+	if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+		perror("recv");
+		exit(1);
+	}
+
+	
+	buf[numbytes] = '\0';
+	printf("Got ack: %s\n", buf);
+
+	char *funcMsg = (char*)argv[1];
+	
+	if((bytes_sent = send(sockfd, funcMsg, strlen(funcMsg), 0))<0) {
+		perror("sendFunction");
+	}
+	if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+		perror("recv");
+		exit(1);
+	}
+
+	buf[numbytes] = '\0';
+	printf("Got ack: %s\n", buf);
+	printf("The client sent < %s > and %s to AWS\n", subInput, funcMsg);
+	// printf("client: trying to send '%s' to server\n", bufCat);
+
+
+	if ((numbytes=recv(sockfd,buf,MAXDATASIZE-1,0))==-1) {
+		perror("recv");
+		exit(1);
+	}
+
+	buf[numbytes] = '\0';
+	printf("According to AWS, %s on < %s >: < %s >\n", funcMsg, input, buf);
+
 
 
 

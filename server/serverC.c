@@ -41,6 +41,7 @@ int main(int argc, char const *argv[])
     serC_sin.sin_family=AF_INET;
     serC_sin.sin_port=htons(SERB_PORT);
 
+    //Binding to socket
     if(bind(sockfd_serC, (struct sockaddr*)&serC_sin, sizeof(serC_sin))==-1) {
     	perror("sockfd_serC bind");
     }
@@ -48,16 +49,7 @@ int main(int argc, char const *argv[])
     printf("The serverC is up and running using UDP on port %d.\n", SERB_PORT);
 
 	while(1) {
-		// char *msgToSend = "serverC: Sending over UDP";
-		// if(sendto(sockfd_serC, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-		// 	perror("serverC sendto");
-		// 	break;
-		// }
-		
-
-
-	//	printf("UDP trying to send '%s' to serverB\n", msgToSend);
-
+		//Receiving input from AWS
 		char inputFromAWS_str[MAXRECV];
 		int serv_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serC, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
@@ -69,6 +61,7 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The serverC received input < %f >\n", inputFromAWS_f);
 
+		//Calculate the fifth power of input
 		float inputFifth_f = calculateFifthPower(inputFromAWS_f);
 
 		char fifthResult[50];
@@ -76,8 +69,9 @@ int main(int argc, char const *argv[])
 
 		printf("The serverC calculated square: < %s >\n", fifthResult);
 
+		//Sending the result back to AWS
 		if(sendto(sockfd_serC, fifthResult, strlen(fifthResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-			perror("serverC sendto1");
+			perror("serverC sendto");
 			break;
 		}
 
@@ -85,17 +79,21 @@ int main(int argc, char const *argv[])
 
 	}
 
+	//Close socket when reaching out of while loop (which is not possible in this code)
+	//Closing can be done manually from the terminal
 	close(sockfd_serC);
 
 	return 0;
 }
 
+//Convert float to string
 void convertFloatToString(float number, char* result) {
 	int length = snprintf(NULL, 0, "%f", number);
 	sprintf(result, "%f", number);
 	result[length] = '\0';
 }
 
+//Calculate fifth power
 float calculateFifthPower(float in) {
 	return in*in*in*in*in;
 }

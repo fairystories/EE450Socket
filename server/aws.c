@@ -38,13 +38,12 @@ int main(int argc, char const *argv[])
 	struct sockaddr_storage client_addr;
 	socklen_t client_size;
 	char conn_src[INET_ADDRSTRLEN];
-	// char buf[MAXRECV];
 	int numbytes;
 
 	struct sockaddr_in aws_sin, serA_sin, serB_sin, serC_sin;
 	int sockfd_serA, sockfd_serB, sockfd_serC;
 
-
+	//TCP socket code snippet from Beej's
 	//Loads up address struct
 	memset(&hints,0,sizeof hints);
 	hints.ai_family = AF_UNSPEC;
@@ -122,13 +121,6 @@ int main(int argc, char const *argv[])
     serA_sin.sin_family=AF_INET;
     serA_sin.sin_port=htons(ServerA_PORT);
 
-
-    // if(bind(sockfd_serA, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
-    // 	perror("sockfd_serA bind");
-    // }
-
-	printf("aws udp for serA: sockfd is %d\n", sockfd_serA);
-
 	/*--------------------SERVERA SOCKET SETUP DONE-------------------------*/
 
 	/*---------------SERVERB SOCKET SETUP!!!----------------*/
@@ -143,12 +135,6 @@ int main(int argc, char const *argv[])
 	memset(&serB_sin,0,sizeof(serB_sin));
     serB_sin.sin_family=AF_INET;
     serB_sin.sin_port=htons(ServerB_PORT);
-
-    // if(bind(sockfd_serB, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
-    // 	perror("sockfd_serB bind");
-    // }
-
-	printf("aws udp for serB: sockfd is %d\n", sockfd_serB);
 
 	/*--------------------SERVERB SOCKET SETUP DONE-------------------------*/
 
@@ -165,38 +151,9 @@ int main(int argc, char const *argv[])
     serC_sin.sin_family=AF_INET;
     serC_sin.sin_port=htons(ServerC_PORT);
 
-    // if(bind(sockfd_serC, (struct sockaddr*)&aws_sin, sizeof(aws_sin))==-1) {
-    // 	perror("sockfd_serC bind");
-    // }
-
-	printf("aws udp for serC: sockfd is %d\n", sockfd_serC);
-
 	/*--------------------SERVERC SOCKET SETUP DONE-------------------------*/
 
 	while(1) {
-
-
-		//-------------------Wait to recieve from server A-------------------------
-		// char serA_conn[MAXRECV];
-		// int serA_sin_len = sizeof(serA_sin);
-		// if((numbytes = recvfrom(sockfd_serA, serA_conn, MAXRECV-1, 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
-		// 	perror("serA recvfrom");
-		// 	break;
-		// }
-		// serA_conn[numbytes] = '\0';
-		// printf("UDP got '%s' from serverA\n", serA_conn);
-
-
-		//Send input to server A, B, C
-		// char *initMsgToA = "Hi A I am AWS";
-		// if(sendto(sockfd_serA, inputToSerA, strlen(inputToSerA), 0, (struct sockaddr*)&serA_sin, sizeof(struct sockaddr))==-1) {
-		// 	perror("aws sendto serA");
-		// 	break;
-		// }
-
-		// printf("AWS trying to send '%s' to serverA and sockfd = %d\n", initMsgToA, sockfd_serA);
-		//--------------------------------------------------------------------------
-
 
 		//Start accepting connections from client----------------------------------------------------
 		client_size = sizeof client_addr;
@@ -207,18 +164,10 @@ int main(int argc, char const *argv[])
 		}
 
 		inet_ntop(client_addr.ss_family, get_in_addr((struct sockaddr *)&client_addr),conn_src,sizeof conn_src);
-		printf("server: connection from %s\n", conn_src);
 
-		// char *servMsg = "Server is sending this message to client";
 		int bytes_sent;
 
-		// if((bytes_sent = send(new_fd, servMsg, strlen(servMsg), 0))<0) {
-		// 	perror("send");
-		// }
-		// printf("server: trying to send '%s' to client\n", servMsg);
-		// printf("sent %d bytes successfully\n", bytes_sent);
-
-		// printf("waiting to recieve from Client\n");
+		//Receveing Function and Input
 		char input[MAXRECV];
 		if ((numbytes=recv(new_fd,input,MAXRECV-1,0))==-1) {
 			perror("recvFunction");
@@ -321,7 +270,6 @@ int main(int argc, char const *argv[])
 
 		//Recieve sec result from A
 		char secResultFromA[MAXRECV];
-		// int serA_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serA, secResultFromA, sizeof(secResultFromA), 0, (struct sockaddr*)&serA_sin, &serA_sin_len))==-1) {
 			perror("serA recvfrom1");
 			break;
@@ -331,7 +279,6 @@ int main(int argc, char const *argv[])
 
 		//Recieve sec result from B
 		char secResultFromB[MAXRECV];
-		// int serB_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serB, secResultFromB, sizeof(secResultFromB), 0, (struct sockaddr*)&serB_sin, &serB_sin_len))==-1) {
 			perror("serB recvfrom1");
 			break;
@@ -342,6 +289,7 @@ int main(int argc, char const *argv[])
 		
 		printf("Values of powers received by AWS: < %s, %s, %s, %s, %s, %s >\n", input, resultFromA, resultFromB, secResultFromA, resultFromC, secResultFromB);
 
+		//Converting the calculated results (powers) from string to float
 		float x1 = convertStrToFloat(input);
 		float x2 = convertStrToFloat(resultFromA);
 		float x3 = convertStrToFloat(resultFromB);
@@ -351,13 +299,12 @@ int main(int argc, char const *argv[])
 
 		char finalResult[50];
 
+		//determining whether the function is log or div
 		int isLog = 1;
 		char* logFunc = "LOG";
 		if(strcmp(func,logFunc)!=0) {
 			isLog = 0;
 		}
-
-		printf("isLog = %d\n", isLog);
 
 		if(isLog) {
 			float LogResult = calculateLog(x1,x2,x3,x4,x5,x6);
@@ -396,18 +343,22 @@ void *get_in_addr(struct sockaddr *sa){
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+//Log function
 float calculateLog(float x1, float x2, float x3, float x4, float x5, float x6) {
 	return (float)((-1.0)*x1-(x2/2.0)-(x3/3.0)-(x4/4.0)-(x5/5.0)-(x6/6.0));
 }
 
+//Div function
 float calculateDiv(float x1, float x2, float x3, float x4, float x5, float x6) {
 	return (float)(1.0+x1+x2+x3+x4+x5+x6);
 }
 
+//Convert string to float
 float convertStrToFloat(char *in) {
 	return strtof(in,NULL);
 }
 
+//Convert float to string
 void convertFloatToString(float number, char* result) {
 	int length = snprintf(NULL, 0, "%f", number);
 	sprintf(result, "%f", number);

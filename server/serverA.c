@@ -47,16 +47,7 @@ int main(int argc, char const *argv[])
     printf("The Server A is up and running using UDP on port %d.\n", SERA_PORT);
 
 	while(1) {
-		// char *msgToSend = "serverA: Sending over UDP";
-		// if(sendto(sockfd_serA, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-		// 	perror("serverA sendto");
-		// 	break;
-		// }
-		
-
-
-	//	printf("UDP trying to send '%s' to serverB\n", msgToSend);
-
+		//Receiving input from AWS
 		char inputFromAWS_str[MAXRECV];
 		int serv_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serA, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
@@ -68,6 +59,7 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The Server A received input < %f >\n", inputFromAWS_f);
 
+		//Calculating square of the input
 		float inputSqr_f = inputFromAWS_f*inputFromAWS_f;
 
 		char sqrResult[50];
@@ -75,6 +67,7 @@ int main(int argc, char const *argv[])
 
 		printf("The Server A calculated square: < %s >\n", sqrResult);
 
+		//Send result back to AWS
 		if(sendto(sockfd_serA, sqrResult, strlen(sqrResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverA sendto1");
 			break;
@@ -84,6 +77,8 @@ int main(int argc, char const *argv[])
 
 	}
 
+	//Close socket when reaching out of while loop (which is not possible in this code)
+	//Closing can be done manually from the terminal
 	close(sockfd_serA);
 
 	return 0;

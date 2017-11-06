@@ -48,16 +48,7 @@ int main(int argc, char const *argv[])
     printf("The Server B is up and running using UDP on port %d.\n", SERB_PORT);
 
 	while(1) {
-		// char *msgToSend = "serverA: Sending over UDP";
-		// if(sendto(sockfd_serB, msgToSend, strlen(msgToSend), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
-		// 	perror("serverA sendto");
-		// 	break;
-		// }
-		
-
-
-	//	printf("UDP trying to send '%s' to serverB\n", msgToSend);
-
+		//Receving input from AWS
 		char inputFromAWS_str[MAXRECV];
 		int serv_sin_len = sizeof(struct sockaddr);
 		if((numbytes = recvfrom(sockfd_serB, inputFromAWS_str, MAXRECV-1, 0, (struct sockaddr*)&serv_sin, (socklen_t*)&serv_sin_len))==-1) {
@@ -69,6 +60,7 @@ int main(int argc, char const *argv[])
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The Server B received input < %f >\n", inputFromAWS_f);
 
+		//Calculate the third power of the input
 		float inputCube_f = calculateCube(inputFromAWS_f);
 
 		char cubeResult[50];
@@ -76,6 +68,7 @@ int main(int argc, char const *argv[])
 
 		printf("The Server B calculated square: < %s >\n", cubeResult);
 
+		//Send result back to AWS
 		if(sendto(sockfd_serB, cubeResult, strlen(cubeResult), 0, (struct sockaddr*)&serv_sin, sizeof(struct sockaddr))==-1) {
 			perror("serverB sendto1");
 			break;
@@ -85,17 +78,21 @@ int main(int argc, char const *argv[])
 
 	}
 
+	//Close socket when reaching out of while loop (which is not possible in this code)
+	//Closing can be done manually from the terminal
 	close(sockfd_serB);
 
 	return 0;
 }
 
+//Convert float to string
 void convertFloatToString(float number, char* result) {
 	int length = snprintf(NULL, 0, "%f", number);
 	sprintf(result, "%f", number);
 	result[length] = '\0';
 }
 
+//Calculating cube
 float calculateCube(float in) {
 	return in*in*in;
 }
