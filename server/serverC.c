@@ -58,6 +58,7 @@ int main(int argc, char const *argv[])
 		}
 		inputFromAWS_str[numbytes] = '\0';
 
+		//Converting string input to float
 		float inputFromAWS_f = strtof(inputFromAWS_str,NULL);
 		printf("The serverC received input < %f >\n", inputFromAWS_f);
 
