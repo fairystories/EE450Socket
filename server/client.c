@@ -18,6 +18,12 @@ void subtractFromOne(char* input, char* result);
 
 int main(int argc, char const *argv[])
 {
+
+	if(argc!=3) {
+		printf("Number of arguements wrong, should be 2: function and input\n");
+		return 1;
+	}
+
 	//addrinfo is the address struct
 	struct addrinfo hints, *servinfo, *p;
 	//sockfd is the socket file descriptor
